@@ -1,0 +1,16 @@
+{
+  "name": "perc-email-service",
+  "version": "1.0.0",
+  "description": "Lambda function for sending PERC form emails",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.490.0",
+    "nodemailer": "^6.9.7"
+  },
+  "author": "",
+  "license": "UNLICENSED"
+}
+
