@@ -10,11 +10,9 @@ export class LambdaService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
-    const region = this.configService.get<string>('AWS_REGION', 'us-east-1');
+    const region = this.configService.get<string>('AWS_REGION');
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>(
-      'AWS_SECRET_ACCESS_KEY',
-    );
+    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
 
     this.lambdaClient = new LambdaClient({
       region,
@@ -28,8 +26,7 @@ export class LambdaService {
     });
 
     this.functionName =
-      this.configService.get<string>('EMAIL_LAMBDA_FUNCTION_NAME') ||
-      'perc-email-service';
+      this.configService.get<string>('EMAIL_LAMBDA_FUNCTION_NAME');
   }
 
   async invokeLambda(payload: unknown): Promise<unknown> {

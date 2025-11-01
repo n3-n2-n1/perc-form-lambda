@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
 import { FormModule } from './form/form.module';
 import { LambdaModule } from './lambda/lambda.module';
 
@@ -8,12 +7,11 @@ import { LambdaModule } from './lambda/lambda.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env.local', '.env'],
     }),
     LambdaModule,
     FormModule,
   ],
-  controllers: [AppController],
 })
 export class AppModule {}
 
