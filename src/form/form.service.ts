@@ -18,7 +18,7 @@ export class FormService {
       return await this.lambdaService.invokeLambda(dto);
     } catch (error) {
       this.logger.warn(
-        'Lambda invocation failed, falling back to direct SMTP:',
+        'Lambda invocation failed, falling back to SendGrid API:',
         error instanceof Error ? error.message : String(error),
       );
       return await this.emailService.sendEmail(dto);

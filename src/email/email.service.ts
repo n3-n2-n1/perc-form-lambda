@@ -1,46 +1,19 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import * as sgMail from '@sendgrid/mail';
 import { SendEmailDto } from '../form/dto/send-email.dto';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
-  private smtpUser: string;
 
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
-    this.initializeTransporter();
-  }
-
-  private initializeTransporter() {
-    const smtpHost = this.configService.get<string>('SMTP_HOST');
-    const smtpPort = parseInt(this.configService.get<string>('SMTP_PORT', '587'), 10);
-    this.smtpUser = this.configService.get<string>('SMTP_USER');
-    const smtpPass = this.configService.get<string>('SMTP_PASS');
-
-    if (!smtpHost || !this.smtpUser || !smtpPass) {
-      this.logger.error('SMTP configuration incomplete:', {
-        host: !!smtpHost,
-        user: !!this.smtpUser,
-        pass: !!smtpPass,
-      });
-      throw new Error('SMTP configuration incomplete. Please check SMTP_HOST, SMTP_USER, and SMTP_PASS/SMTP_PASSWORD');
+    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    if (sendgridApiKey) {
+      sgMail.setApiKey(sendgridApiKey);
     }
-
-    const smtpConfig: any = {
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: this.smtpUser,
-        pass: smtpPass,
-      },
-    };
-
-    this.transporter = nodemailer.createTransport(smtpConfig);
   }
 
   private generateEmailHTML(formData: Record<string, unknown>, files: Array<{ name: string; category: string }>) {
@@ -117,6 +90,11 @@ export class EmailService {
 
   async sendEmail(dto: SendEmailDto): Promise<unknown> {
     try {
+      const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+      if (!sendgridApiKey) {
+        throw new Error('SENDGRID_API_KEY is required for email fallback');
+      }
+
       const recipientEmail =
         this.configService.get<string>('EMAIL_TO') ||
         dto.formData.email;
@@ -129,34 +107,33 @@ export class EmailService {
         const filename = `${category}_${nameWithoutExt}.${extension}`;
 
         return {
+          content: file.buffer,
           filename: filename,
-          content: Buffer.from(file.buffer, 'base64'),
-          contentType: file.mimetype,
+          type: file.mimetype,
+          disposition: 'attachment',
         };
       });
 
       const htmlContent = this.generateEmailHTML(dto.formData, dto.files);
 
-      const mailOptions = {
-        from:
-          this.configService.get<string>('SMTP_FROM'),
+      const msg = {
         to: recipientEmail,
+        from: this.configService.get<string>('SMTP_FROM') || 'noreply@perc.com',
         subject: `Nuevo Formulario PERC - ${dto.formData.socialDenomination || 'Sin nombre'}`,
         html: htmlContent,
         attachments: attachments.length > 0 ? attachments : undefined,
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
+      const [response] = await sgMail.send(msg);
 
-      this.logger.log('Email sent successfully:', {
-        messageId: info.messageId,
-        accepted: info.accepted,
-        rejected: info.rejected,
+      this.logger.log('Email sent successfully via SendGrid:', {
+        statusCode: response.statusCode,
+        headers: response.headers,
       });
 
       return {
         success: true,
-        messageId: info.messageId,
+        messageId: response.headers['x-message-id'] || 'unknown',
         message: 'Email enviado correctamente',
       };
     } catch (error) {
@@ -165,4 +142,3 @@ export class EmailService {
     }
   }
 }
-
