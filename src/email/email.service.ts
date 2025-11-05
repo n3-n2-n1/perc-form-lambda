@@ -28,13 +28,16 @@ export class EmailService {
         return '-';
       }
       return value
-        .map((item) => {
+        .map((item, index) => {
           if (typeof item === 'object' && item !== null) {
-            return this.formatObject(item);
+            return `<div style="margin-bottom: 12px; padding: 10px; background: white; border-radius: 4px; border-left: 3px solid #3b82f6;">
+              <strong style="color: #64748b; font-size: 12px;">Item ${index + 1}:</strong><br>
+              ${this.formatObject(item)}
+            </div>`;
           }
-          return String(item);
+          return `<div style="margin-bottom: 8px; padding-left: 15px;">• ${String(item)}</div>`;
         })
-        .join('<br>');
+        .join('');
     }
     if (typeof value === 'object') {
       return this.formatObject(value as Record<string, unknown>);
@@ -50,14 +53,14 @@ export class EmailService {
           .replace(/^./, (str) => str.toUpperCase())
           .trim();
         const formattedVal =
-          typeof val === 'object' && val !== null
+          typeof val === 'object' && val !== null && !Array.isArray(val)
             ? JSON.stringify(val)
             : val === null || val === undefined
               ? '-'
               : String(val);
-        return `${label}: ${formattedVal}`;
+        return `<div style="margin-left: 20px; margin-bottom: 5px;"><strong>${label}:</strong> ${formattedVal}</div>`;
       })
-      .join(', ');
+      .join('');
     return entries || '-';
   }
 
@@ -71,8 +74,8 @@ export class EmailService {
         const formattedValue = this.formatValue(value);
         return `
         <div class="field">
-          <span class="label">${label}:</span>
-          <span class="value">${formattedValue}</span>
+          <div class="label">${label}</div>
+          <div class="value">${formattedValue}</div>
         </div>
       `;
       })
@@ -81,21 +84,23 @@ export class EmailService {
     const filesList =
       files.length > 0
         ? `
-      <h2>Archivos Adjuntos</h2>
-      <ul class="files-list">
-        ${files
-          .map((file) => {
-            const category = file.category || 'unknown';
-            const originalName = file.name || 'document';
-            return `
-            <li>
-              <span class="category">[${category}]</span>
+      <div class="section">
+        <h3 class="section-title">Archivos Adjuntos</h3>
+        <div class="files-list">
+          ${files
+            .map((file) => {
+              const category = file.category || 'unknown';
+              const originalName = file.name || 'document';
+              return `
+            <div class="file-item">
+              <span class="category-badge">${category}</span>
               <span class="filename">${originalName}</span>
-            </li>
+            </div>
           `;
-          })
-          .join('')}
-      </ul>
+            })
+            .join('')}
+        </div>
+      </div>
     `
         : '';
 
@@ -104,29 +109,120 @@ export class EmailService {
     <html>
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #1e293b; color: white; padding: 20px; text-align: center; }
-        .content { background: #f8fafc; padding: 20px; }
-        .field { margin-bottom: 15px; }
-        .label { font-weight: bold; color: #475569; }
-        .value { color: #334155; }
-        .files-list { list-style: none; padding: 0; margin-top: 20px; }
-        .files-list li { padding: 8px; background: white; margin-bottom: 8px; border-left: 3px solid #1e293b; }
-        .category { font-weight: bold; color: #1e293b; margin-right: 10px; }
-        .filename { color: #334155; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+          line-height: 1.6; 
+          color: #333;
+          margin: 0;
+          padding: 0;
+          background-color: #f5f5f5;
+        }
+        .email-container {
+          max-width: 650px; 
+          margin: 0 auto; 
+          background-color: #ffffff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header { 
+          background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
+          color: white; 
+          padding: 30px 20px; 
+          text-align: center; 
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        .content { 
+          padding: 30px; 
+          background: #ffffff;
+        }
+        .section {
+          margin-bottom: 30px;
+        }
+        .section-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1e293b;
+          margin-bottom: 15px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #e2e8f0;
+        }
+        .field { 
+          margin-bottom: 20px; 
+          padding: 15px;
+          background-color: #f8fafc;
+          border-left: 4px solid #3b82f6;
+          border-radius: 4px;
+        }
+        .label { 
+          font-weight: 600; 
+          color: #475569; 
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+        }
+        .value { 
+          color: #1e293b; 
+          font-size: 15px;
+          line-height: 1.6;
+          word-wrap: break-word;
+        }
+        .files-list { 
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .file-item { 
+          padding: 12px 15px; 
+          background: white; 
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .category-badge { 
+          font-weight: 600; 
+          color: white;
+          background-color: #1e293b;
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-size: 12px;
+          text-transform: uppercase;
+        }
+        .filename { 
+          color: #334155; 
+          font-size: 14px;
+        }
+        .footer {
+          background-color: #f8fafc;
+          padding: 20px;
+          text-align: center;
+          color: #64748b;
+          font-size: 12px;
+          border-top: 1px solid #e2e8f0;
+        }
       </style>
     </head>
     <body>
-      <div class="container">
+      <div class="email-container">
         <div class="header">
-          <h1>Nuevo Formulario PERC</h1>
+          <h1>Nueva Solicitud de Apertura de Cuenta - PERC</h1>
         </div>
         <div class="content">
-          <h2>Datos del Formulario</h2>
-          ${fields}
+          <div class="section">
+            <h2 class="section-title">Información del Formulario</h2>
+            ${fields}
+          </div>
           ${filesList}
+        </div>
+        <div class="footer">
+          <p>Si usted esta viendo esto es porque el formulario fue enviado correctamente. Este email fue generado automáticamente por el sistema PERC. No responder a este email.</p>
         </div>
       </div>
     </body>
