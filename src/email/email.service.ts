@@ -16,6 +16,51 @@ export class EmailService {
     }
   }
 
+  private formatValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '-';
+    }
+    if (typeof value === 'boolean') {
+      return value ? 'SI' : 'NO';
+    }
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return '-';
+      }
+      return value
+        .map((item) => {
+          if (typeof item === 'object' && item !== null) {
+            return this.formatObject(item);
+          }
+          return String(item);
+        })
+        .join('<br>');
+    }
+    if (typeof value === 'object') {
+      return this.formatObject(value as Record<string, unknown>);
+    }
+    return String(value);
+  }
+
+  private formatObject(obj: Record<string, unknown>): string {
+    const entries = Object.entries(obj)
+      .map(([key, val]) => {
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (str) => str.toUpperCase())
+          .trim();
+        const formattedVal =
+          typeof val === 'object' && val !== null
+            ? JSON.stringify(val)
+            : val === null || val === undefined
+              ? '-'
+              : String(val);
+        return `${label}: ${formattedVal}`;
+      })
+      .join(', ');
+    return entries || '-';
+  }
+
   private generateEmailHTML(formData: Record<string, unknown>, files: Array<{ name: string; category: string }>) {
     const fields = Object.entries(formData)
       .map(([key, value]) => {
@@ -23,10 +68,11 @@ export class EmailService {
           .replace(/([A-Z])/g, ' $1')
           .replace(/^./, (str) => str.toUpperCase())
           .trim();
+        const formattedValue = this.formatValue(value);
         return `
         <div class="field">
           <span class="label">${label}:</span>
-          <span class="value">${value || '-'}</span>
+          <span class="value">${formattedValue}</span>
         </div>
       `;
       })
