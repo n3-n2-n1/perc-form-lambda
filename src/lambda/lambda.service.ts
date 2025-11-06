@@ -11,20 +11,9 @@ export class LambdaService {
     @Inject(ConfigService) private readonly configService: ConfigService
   ) {
     const region = this.configService.get<string>("AWS_REGION", "us-east-1");
-    const accessKeyId = this.configService.get<string>("AWS_ACCESS_KEY_ID");
-    const secretAccessKey = this.configService.get<string>(
-      "AWS_SECRET_ACCESS_KEY"
-    );
 
     this.lambdaClient = new LambdaClient({
       region,
-      credentials:
-        accessKeyId && secretAccessKey
-          ? {
-              accessKeyId,
-              secretAccessKey,
-            }
-          : undefined,
     });
 
     this.functionName =
@@ -59,12 +48,36 @@ export class LambdaService {
         new TextDecoder("utf-8").decode(response.Payload)
       );
 
+      if (result.body) {
+        try {
+          const bodyParsed =
+            typeof result.body === "string"
+              ? JSON.parse(result.body)
+              : result.body;
+
+          if (result.statusCode >= 400 || !bodyParsed.success) {
+            const errorMessage =
+              bodyParsed.error ||
+              bodyParsed.message ||
+              "Lambda returned an error";
+            const error = new Error(errorMessage);
+            (error as any).statusCode = result.statusCode;
+            (error as any).details = bodyParsed.details;
+            throw error;
+          }
+
+          return bodyParsed;
+        } catch (parseError) {
+          return result;
+        }
+      }
+
       return result;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Error invoking Lambda: ${error.message}`);
+        throw error;
       }
-      throw error;
+      throw new Error(`Error invoking Lambda: ${String(error)}`);
     }
   }
 }
