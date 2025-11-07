@@ -134,8 +134,20 @@ La Lambda retorna:
 }
 ```
 
+## Características
+
+- ✅ **Validación robusta**: Valida variables de entorno, formato de email, y tamaño de archivos
+- ✅ **Manejo de errores mejorado**: Códigos de estado HTTP apropiados y mensajes de error descriptivos
+- ✅ **Optimización**: Reutiliza el transporter de SES entre invocaciones para mejor rendimiento
+- ✅ **Logging estructurado**: Incluye métricas de duración y detalles de ejecución
+- ✅ **Validación de archivos**: Verifica tamaño máximo (10MB) y formato base64
+- ✅ **Template HTML profesional**: Genera emails responsive y compatibles con todos los clientes
+
 ## Notas
 
 - El email se genera con un template HTML profesional usando las mismas utilidades que el backend NestJS
 - Los archivos adjuntos se convierten desde base64 a Buffer antes de enviarse
 - El email incluye todos los datos del formulario formateados y los archivos adjuntos categorizados
+- La función valida automáticamente las variables de entorno al iniciar
+- El transporter de SES se reutiliza entre invocaciones para mejorar el rendimiento
+- Tamaño máximo de archivo: 10MB por archivo
