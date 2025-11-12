@@ -1,8 +1,6 @@
 const { SESClient } = require("@aws-sdk/client-ses");
 const nodemailer = require("nodemailer");
 const { generateEmailHTML } = require("./utils");
-
-// Validar variables de entorno al inicio
 const requiredEnvVars = ["AWS_REGION", "RECIPIENT_EMAIL", "FROM_EMAIL"];
 const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
@@ -10,12 +8,10 @@ if (missingEnvVars.length > 0) {
   console.error("Missing required environment variables:", missingEnvVars.join(", "));
 }
 
-// Inicializar SES Client una sola vez (reutilizable)
 const sesClient = new SESClient({
   region: process.env.AWS_REGION || "us-east-1",
 });
 
-// Crear transporter una sola vez (reutilizable entre invocaciones)
 let transporter = null;
 
 function getTransporter() {
@@ -106,7 +102,6 @@ exports.handler = async (event) => {
   const startTime = Date.now();
 
   try {
-    // Validar variables de entorno
     if (missingEnvVars.length > 0) {
       return createResponse(500, {
         success: false,
@@ -114,7 +109,6 @@ exports.handler = async (event) => {
       });
     }
 
-    // Parsear evento
     let parsedEvent;
     try {
       parsedEvent = parseEvent(event);
