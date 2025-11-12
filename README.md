@@ -27,9 +27,12 @@ pnpm install
 
 ```env
 # AWS Lambda
-AWS_REGION=us-east-1
-EMAIL_LAMBDA_FUNCTION_NAME=perc-email-service
 PORT=3000
+ENVIROMENT=development
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+FROM_EMAIL=
+EMAIL_LAMBDA_FUNCTION_NAME=
 ```
 
 ## Desarrollo
