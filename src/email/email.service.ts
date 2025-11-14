@@ -43,20 +43,36 @@ export class EmailService {
         attachments: attachments.length > 0 ? attachments : undefined,
       };
 
-      const [response] = await sgMail.send(msg);
+      // 🔥 FIRE AND FORGET: Enviar sin esperar respuesta
+      sgMail.send(msg)
+        .then((result) => {
+          this.logger.log("✅ Email sent successfully via SendGrid:", {
+            messageId: result[0]?.headers?.['x-message-id'],
+            statusCode: result[0]?.statusCode,
+          });
+        })
+        .catch((error) => {
+          this.logger.error("❌ SendGrid async error:", {
+            message: error.message,
+            code: error.code,
+            response: error.response?.body
+          });
+          // Aquí se podría implementar:
+          // - Reintento automático
+          // - Notificación de error
+          // - Guardado en BD para tracking
+        });
 
-      this.logger.log("Email sent successfully via SendGrid:", {
-        statusCode: response.statusCode,
-        headers: response.headers,
-      });
-
+      // ✅ Respuesta inmediata al cliente
       return {
         success: true,
-        messageId: response.headers["x-message-id"] || "unknown",
-        message: "Email enviado correctamente",
+        messageId: `sendgrid-async-${Date.now()}`,
+        message: "Email enviado correctamente (procesamiento en background)",
+        processing: "background"
       };
+
     } catch (error) {
-      this.logger.error("Error sending email:", error);
+      this.logger.error("❌ Error preparing email:", error);
       throw error;
     }
   }
