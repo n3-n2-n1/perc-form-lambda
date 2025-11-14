@@ -84,7 +84,7 @@ const emailTemplate = (fields: string, filesList: string) => {
     
     /* Header */
     .header {
-      background: linear-gradient(135deg,rgb(186, 16, 16) 0%,rgb(26, 41, 155) 100%);
+      background-color: #1e293b;
       border-radius: 16px 16px 0 0;
       padding: 48px 40px;
       text-align: center;
@@ -112,18 +112,18 @@ const emailTemplate = (fields: string, filesList: string) => {
       background-color: #ffffff;
       border-radius: 0 0 16px 16px;
       padding: 48px 40px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
     }
     
     /* Section */
     .section-title {
-      margin: 0 0 32px 0;
+      margin: 0 0 40px 0;
       font-size: 20px;
-      font-weight: 700;
-      color: #0f172a;
+      font-weight: 600;
+      color: #374151;
       letter-spacing: -0.3px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #d1d5db;
     }
     
     /* Fields Grid - Masonry Layout */
@@ -202,7 +202,7 @@ const emailTemplate = (fields: string, filesList: string) => {
       <!-- Header -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 0;">
         <tr>
-          <td class="header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px 16px 0 0; padding: 48px 40px; text-align: center;">
+          <td class="header" style="background-color: #1e293b; border-radius: 16px 16px 0 0; padding: 48px 40px; text-align: center;">
             <h1 class="header-title" style="margin: 0 0 12px 0; font-size: 32px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
               Nueva Solicitud PERC
             </h1>
@@ -216,10 +216,10 @@ const emailTemplate = (fields: string, filesList: string) => {
       <!-- Body -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 0;">
         <tr>
-          <td class="email-body" style="background-color: #ffffff; border-radius: 0 0 16px 16px; padding: 48px 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+          <td class="email-body" style="background-color: #ffffff; border-radius: 0 0 16px 16px; padding: 48px 40px; box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);">
             
             <!-- Section Title -->
-            <h2 class="section-title" style="margin: 0 0 32px 0; font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
+            <h2 class="section-title" style="margin: 0 0 40px 0; font-size: 20px; font-weight: 600; color: #374151; letter-spacing: -0.3px; padding-bottom: 20px; border-bottom: 1px solid #d1d5db; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
               Información del Formulario
             </h2>
             
@@ -227,21 +227,23 @@ const emailTemplate = (fields: string, filesList: string) => {
             <div class="fields-grid">
               ${fields}
             </div>
-            
+
             <!-- Files List -->
-            ${filesList}
+            <div style="margin-top: 40px;">
+              ${filesList}
+            </div>
             
           </td>
         </tr>
       </table>
       
       <!-- Footer -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 32px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 48px;">
         <tr>
-          <td style="padding: 0; text-align: center;">
-            <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
+          <td style="padding: 24px; text-align: center; background-color: #f9fafb; border-radius: 8px;">
+            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;">
               Este email fue generado automáticamente por el sistema PERC.<br>
-              <span style="color: #94a3b8; font-size: 12px;">Por favor, no responder a este correo.</span>
+              <span style="color: #9ca3af; font-size: 12px;">Por favor, no responder a este correo.</span>
             </p>
           </td>
         </tr>
