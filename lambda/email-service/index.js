@@ -1,73 +1,17 @@
-const { SESClient } = require("@aws-sdk/client-ses");
-const nodemailer = require("nodemailer");
 const sgMail = require("@sendgrid/mail");
 const { generateEmailHTML } = require("./utils");
 
-// Variables requeridas - SendGrid es opcional, SES es fallback
-const requiredEnvVars = ["AWS_REGION", "EMAIL_TO", "FROM_EMAIL"];
-const sendgridVars = ["SENDGRID_API_KEY"];
+// Variables requeridas
+const requiredEnvVars = ["EMAIL_TO", "FROM_EMAIL", "SENDGRID_API_KEY"];
 
 const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
-const hasSendGrid = sendgridVars.every((varName) => process.env[varName]);
 
 if (missingEnvVars.length > 0) {
   console.error("Missing required environment variables:", missingEnvVars.join(", "));
 }
 
-if (!hasSendGrid) {
-  console.warn("SendGrid credentials not found, will use SES as fallback");
-} else {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
-
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
-});
-
-let transporter = null;
-
-function getTransporter() {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      SES: { ses: sesClient, aws: require("@aws-sdk/client-ses") },
-    });
-  }
-  return transporter;
-}
-
-// Función para enviar email con SendGrid
-async function sendWithSendGrid(mailOptions) {
-  const msg = {
-    to: mailOptions.to,
-    from: process.env.FROM_EMAIL, // Usar la misma dirección FROM_EMAIL
-    subject: mailOptions.subject,
-    html: mailOptions.html,
-    attachments: mailOptions.attachments?.map(attachment => ({
-      content: attachment.content.toString('base64'),
-      filename: attachment.filename,
-      type: attachment.contentType,
-      disposition: 'attachment',
-    })),
-  };
-
-  const result = await sgMail.send(msg);
-  return {
-    messageId: result[0]?.headers?.['x-message-id'] || 'sendgrid-' + Date.now(),
-    accepted: [mailOptions.to],
-    rejected: [],
-    service: 'sendgrid'
-  };
-}
-
-// Función para enviar email con SES
-async function sendWithSES(mailOptions) {
-  const transporter = getTransporter();
-  const result = await transporter.sendMail(mailOptions);
-  return {
-    ...result,
-    service: 'ses'
-  };
-}
+// Configurar SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -206,52 +150,38 @@ exports.handler = async (event) => {
       attachments: attachments.length > 0 ? attachments : undefined,
     };
 
-    // Enviar email - intentar SendGrid primero, SES como fallback
-    let info;
-    let usedService = 'unknown';
+    // Enviar email con SendGrid
+    console.log("Sending email with SendGrid...");
 
-    try {
-      if (hasSendGrid) {
-        console.log("Attempting to send email with SendGrid...");
-        info = await sendWithSendGrid(mailOptions);
-        usedService = 'sendgrid';
-        console.log("Email sent successfully with SendGrid");
-      } else {
-        throw new Error("SendGrid not configured");
-      }
-    } catch (sendgridError) {
-      console.warn("SendGrid failed, falling back to SES:", sendgridError.message);
+    const msg = {
+      to: mailOptions.to,
+      from: process.env.FROM_EMAIL,
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+      attachments: mailOptions.attachments?.map(attachment => ({
+        content: attachment.content.toString('base64'),
+        filename: attachment.filename,
+        type: attachment.contentType,
+        disposition: 'attachment',
+      })),
+    };
 
-      try {
-        console.log("Attempting to send email with SES...");
-        info = await sendWithSES(mailOptions);
-        usedService = 'ses';
-        console.log("Email sent successfully with SES (fallback)");
-      } catch (sesError) {
-        console.error("Both SendGrid and SES failed:", {
-          sendgridError: sendgridError.message,
-          sesError: sesError.message
-        });
-        throw sesError; // Lanzar el error de SES
-      }
-    }
+    const result = await sgMail.send(msg);
 
     const duration = Date.now() - startTime;
 
-    console.log("Email sent successfully:", {
-      service: usedService,
-      messageId: info.messageId,
-      accepted: info.accepted,
-      rejected: info.rejected,
+    console.log("Email sent successfully with SendGrid:", {
+      messageId: result[0]?.headers?.['x-message-id'] || 'sendgrid-' + Date.now(),
+      statusCode: result[0]?.statusCode,
       duration: `${duration}ms`,
       attachmentsCount: attachments.length,
     });
 
     return createResponse(200, {
       success: true,
-      messageId: info.messageId,
-      service: usedService,
-      message: `Email enviado correctamente via ${usedService.toUpperCase()}`,
+      messageId: result[0]?.headers?.['x-message-id'] || 'sendgrid-' + Date.now(),
+      service: 'sendgrid',
+      message: "Email enviado correctamente via SendGrid",
     });
   } catch (error) {
     const duration = Date.now() - startTime;
