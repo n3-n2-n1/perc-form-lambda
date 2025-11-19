@@ -11,6 +11,8 @@ async function bootstrap() {
     'https://perc-form.vercel.app',
     'http://localhost:4200',
     'http://localhost:3000',
+    'https://form.psp.perc.cloud',
+    'http://form.psp.perc.cloud/'
   ];
 
   app.enableCors({
