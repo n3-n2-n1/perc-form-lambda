@@ -13,6 +13,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'https://form.psp.perc.cloud',
     'http://form.psp.perc.cloud/'
+    '*'
   ];
 
   app.enableCors({
@@ -48,7 +49,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      whitelist: false,
       forbidNonWhitelisted: false, // Permite campos adicionales para multipart/form-data
       transform: true,
       skipMissingProperties: true, // Permite propiedades faltantes
