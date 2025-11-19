@@ -12,13 +12,12 @@ async function bootstrap() {
     'http://localhost:4200',
     'http://localhost:3000',
     'https://form.psp.perc.cloud',
-    'http://form.psp.perc.cloud/'
+    'http://form.psp.perc.cloud/',
     '*'
   ];
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
       
       if (allowedOrigins.indexOf(origin) !== -1) {
